@@ -1,0 +1,1045 @@
+local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+
+WindUI:AddTheme({
+    Name = "Fyy Exploit", 
+    
+    Accent = WindUI:Gradient({                                                  
+        ["0"] = { Color = Color3.fromHex("#1f1f23"), Transparency = 0 },        
+        ["100"]   = { Color = Color3.fromHex("#18181b"), Transparency = 0 },    
+    }, {                                                                        
+        Rotation = 0,                                                           
+    }),                                                                         
+    Dialog = Color3.fromHex("#161616"),
+    Outline = Color3.fromHex("#FFFFFF"),
+    Text = Color3.fromHex("#FFFFFF"),
+    Placeholder = Color3.fromHex("#7a7a7a"),
+    Background = Color3.fromHex("#101010"),
+    Button = Color3.fromHex("#52525b"),
+    Icon = Color3.fromHex("#a1a1aa")
+})
+local Window = WindUI:CreateWindow({
+    Title = "FyyExploit",
+    Icon = "slack", 
+    Author = "Fyy X Fish IT",
+    Folder = "FyyConfig",
+    
+    Size = UDim2.fromOffset(530, 300),
+    MinSize = Vector2.new(320, 300),
+    MaxSize = Vector2.new(850, 560),
+    Transparent = true,
+    Theme = "Dark",
+    Resizable = true,
+    SideBarWidth = 150,
+    BackgroundImageTransparency = 0.42,
+    HideSearchBar = false,
+    ScrollBarEnabled = false,
+})
+
+Window:SetToggleKey(Enum.KeyCode.G)
+
+WindUI:Notify({
+    Title = "FyyLoader",
+    Content = "Press G To Open/Close Menu!",
+    Duration = 4, 
+    Icon = "slack",
+})
+---------------- TAB ---------------
+
+local Info = Window:Tab({
+    Title = "Info",
+    Icon = "info", 
+})
+
+local Player = Window:Tab({
+    Title = "Player",
+    Icon = "user", 
+})
+
+local Auto = Window:Tab({
+    Title = "Main",
+    Icon = "play", 
+})
+
+local Shop = Window:Tab({
+    Title = "Shop",
+    Icon = "shopping-cart", 
+})
+
+local Teleport = Window:Tab({
+    Title = "Teleport",
+    Icon = "map-pin",
+})
+
+local Quest = Window:Tab({
+    Title = "Quest",
+    Icon = "loader", 
+})
+
+local Setting = Window:Tab({
+    Title = "Settings",
+    Icon = "settings", 
+})
+
+local Enchant = Window:Tab({
+	Title = "Enchants",
+	Icon = "star",
+})
+
+local Discord = Window:Tab({
+    Title = "Webhook",
+    Icon = "megaphone", 
+})
+
+local Config = Window:Tab({
+	Title = "Config",
+	Icon = "folder",
+})
+
+----------- END OF TAB -------------
+local InfoSection = Info:Section({
+    Title = "Have Problem / Need Help? Join Server Now",
+    Box = true,
+    TextTransparency = 0.05,
+    TextXAlignment = "Center",
+    TextSize = 17,
+    Opened = true,
+})
+
+Info:Select()
+
+local function CopyLink(link, title, notifTitle, notifContent)
+    Info:Button({
+        Title = title or "Copy Link",
+        Desc = "Click to copy link",
+        Callback = function()
+            if setclipboard then
+                setclipboard(link)
+            end
+            WindUI:Notify({
+                Title = notifTitle or "Copied!",
+                Content = notifContent or ("Link '" .. link .. "' copied to clipboard"),
+                Duration = 3,
+                Icon = "bell",
+            })
+        end
+    })
+end
+
+CopyLink(
+    "https://discord.gg/77nEeYeFRp",
+    "Copy Discord Link",
+    "Discord Copied!",
+    "Link copied to clipboard"
+)
+
+---------------------------------------------------------------
+--// PLAYER TAB
+local PlayerSection = Player:Section({ Title = "Player Feature" })
+
+local WalkSpeedInput = Player:Input({
+    Title = "Set WalkSpeed",
+    Placeholder = "Enter number (e.g. 50)",
+    Callback = function(value)
+        WalkSpeedInput.Value = tonumber(value) or 16
+    end
+})
+
+local WalkSpeedToggle = Player:Toggle({
+    Title = "WalkSpeed",
+    Default = false,
+    Callback = function(state)
+        local player = game.Players.LocalPlayer
+        local char = player.Character or player.CharacterAdded:Wait()
+        local humanoid = char:WaitForChild("Humanoid")
+        humanoid.WalkSpeed = state and (WalkSpeedInput.Value or 16) or 16
+    end
+})
+
+Player:Divider()
+
+--// Infinite Jump
+local InfiniteJumpConn
+Player:Toggle({
+    Title = "Infinite Jump",
+    Default = false,
+    Callback = function(state)
+        local UIS = game:GetService("UserInputService")
+        if state then
+            InfiniteJumpConn = UIS.JumpRequest:Connect(function()
+                local char = game.Players.LocalPlayer.Character
+                if char and char:FindFirstChild("Humanoid") then
+                    char.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                end
+            end)
+        elseif InfiniteJumpConn then
+            InfiniteJumpConn:Disconnect()
+            InfiniteJumpConn = nil
+        end
+    end
+})
+
+--// NoClip
+local NoClipConn
+Player:Toggle({
+    Title = "NoClip",
+    Default = false,
+    Callback = function(state)
+        local player = game.Players.LocalPlayer
+        if state then
+            NoClipConn = game:GetService("RunService").Stepped:Connect(function()
+                local char = player.Character
+                if char then
+                    for _, part in ipairs(char:GetChildren()) do
+                        if part:IsA("BasePart") then
+                            part.CanCollide = false
+                        end
+                    end
+                end
+            end)
+        elseif NoClipConn then
+            NoClipConn:Disconnect()
+            NoClipConn = nil
+            local char = player.Character
+            if char then
+                for _, part in ipairs(char:GetChildren()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = true
+                    end
+                end
+            end
+        end
+    end
+})
+
+--// Walk On Water
+local walkOnWater = false
+local waterPart
+
+Player:Toggle({
+    Title = "Walk On Water",
+    Default = false,
+    Callback = function(state)
+        walkOnWater = state
+        local player = game.Players.LocalPlayer
+        local char = player.Character
+        if state and char then
+            local hrp = char:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                if waterPart then waterPart:Destroy() end
+                waterPart = Instance.new("Part")
+                waterPart.Anchored = true
+                waterPart.CanCollide = true
+                waterPart.Size = Vector3.new(20, 1, 20)
+                waterPart.Transparency = 1
+                waterPart.Position = Vector3.new(hrp.Position.X, 0, hrp.Position.Z)
+                waterPart.Parent = workspace
+            end
+        elseif waterPart then
+            waterPart:Destroy()
+            waterPart = nil
+        end
+    end
+})
+
+game:GetService("RunService").Heartbeat:Connect(function()
+    if walkOnWater and waterPart then
+        local player = game.Players.LocalPlayer
+        local char = player.Character
+        if char and char:FindFirstChild("HumanoidRootPart") then
+            local pos = char.HumanoidRootPart.Position
+            waterPart.Position = Vector3.new(pos.X, 0, pos.Z)
+        end
+    end
+end)
+
+--// Respawn at current position
+Player:Button({
+    Title = "Respawn at Current Position",
+    Callback = function()
+        local player = game.Players.LocalPlayer
+        local char = player.Character
+        if char then
+            local humanoid = char:FindFirstChild("Humanoid")
+            if humanoid then
+                local pos = char:GetPivot().Position
+                humanoid.Health = 0
+                player.CharacterAdded:Connect(function(newChar)
+                    task.wait(1)
+                    local hrp = newChar:FindFirstChild("HumanoidRootPart")
+                    if hrp then
+                        hrp.CFrame = CFrame.new(pos)
+                    end
+                end)
+            end
+        end
+    end
+})
+
+
+Player:Space()
+Player:Divider()
+
+local Section = Player:Section({
+    Title = "Gui External",
+    Opened = true,
+})
+
+local FlyButton = Player:Button({
+    Title = "Fly GUI",
+    Locked = false,
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))()
+
+        WindUI:Notify({
+            Title = "Fly",
+            Content = "Fly GUI berhasil dijalankan ✅",
+            Duration = 3,
+            Icon = "bell"
+        })
+    end
+})
+
+---------------- END OF PLAYER ------------------
+local VirtualInputManager = game:GetService("VirtualInputManager")
+
+task.spawn(function()
+    local cycle = 0
+    while true do
+        
+        local waitTime = math.random(600, 700)
+        task.wait(waitTime)
+        local keyCombos = {
+            {Enum.KeyCode.LeftShift, Enum.KeyCode.E},    
+            {Enum.KeyCode.LeftControl, Enum.KeyCode.F},     
+            {Enum.KeyCode.Q, Enum.KeyCode.Tab},           
+            {Enum.KeyCode.LeftShift, Enum.KeyCode.Q},     
+            {Enum.KeyCode.E, Enum.KeyCode.F},             
+        }
+        
+        local chosenCombo = keyCombos[math.random(1, #keyCombos)]
+        pcall(function()
+            for _, key in pairs(chosenCombo) do
+                VirtualInputManager:SendKeyEvent(true, key, false, nil)
+            end
+            
+            task.wait(0.1) 
+                for _, key in pairs(chosenCombo) do
+                VirtualInputManager:SendKeyEvent(false, key, false, nil)
+            end
+        end)        
+    end
+end)
+print("ANTI-AFK : ON By Fyy")
+
+local Section = Auto:Section({ 
+    Title = "Main Feature",
+})
+
+local autoFishingRunning = false
+local autoFishingToggle
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+
+local player = Players.LocalPlayer
+
+local REEquipToolFromHotbar = ReplicatedStorage.Packages._Index["sleitnick_net@0.2.0"].net["RE/EquipToolFromHotbar"]
+local RFChargeFishingRod = ReplicatedStorage.Packages._Index["sleitnick_net@0.2.0"].net["RF/ChargeFishingRod"]
+local RFRequestFishingMinigameStarted = ReplicatedStorage.Packages._Index["sleitnick_net@0.2.0"].net["RF/RequestFishingMinigameStarted"]
+local REFishingCompleted = ReplicatedStorage.Packages._Index["sleitnick_net@0.2.0"].net["RE/FishingCompleted"]
+local REUnequipToolFromHotbar = ReplicatedStorage.Packages._Index["sleitnick_net@0.2.0"].net["RE/UnequipToolFromHotbar"]
+local RFCancelFishingInputs = ReplicatedStorage.Packages._Index["sleitnick_net@0.2.0"].net["RF/CancelFishingInputs"]
+local REFishCaught = ReplicatedStorage.Packages._Index["sleitnick_net@0.2.0"].net["RE/FishCaught"]
+
+local lastFishTime = 0
+local running = false
+local equipped = false
+local lastResetTime = 0
+local fishCheckEnabled = false
+local initialSetupDone = false 
+
+local function safeFire(remote, arg)
+	if not remote then
+		return false
+	end
+	local ok, err = pcall(function()
+		if arg ~= nil then
+			remote:FireServer(arg)
+		else
+			remote:FireServer()
+		end
+	end)
+	if not ok then
+		return false
+	end
+	return true
+end
+
+local function safeInvoke(remote, arg1, arg2)
+	if not remote then
+		return nil
+	end
+	local ok, res = pcall(function()
+		if arg1 ~= nil and arg2 ~= nil then
+			return remote:InvokeServer(arg1, arg2)
+		elseif arg1 ~= nil then
+			return remote:InvokeServer(arg1)
+		else
+			return remote:InvokeServer()
+		end
+	end)
+	if not ok then
+		return nil
+	end
+	return res
+end
+
+local function showNotification(title, content)
+    if WindUI and WindUI.Notify then
+        WindUI:Notify({
+            Title = title,
+            Content = content,
+            Duration = 3,
+        })
+    elseif Auto and Auto.Notify then
+        Auto:Notify({
+            Title = title,
+            Content = content,
+            Duration = 3,
+        })
+    end
+end
+
+local function equipToolOnce()
+    if not equipped then
+        for i = 1, 3 do
+            safeFire(REEquipToolFromHotbar, 1)
+        end
+        equipped = true
+    end
+end
+
+local function resetTool()
+    safeFire(REUnequipToolFromHotbar)
+    equipped = false
+    equipToolOnce()
+end
+
+local function doChargeAndRequest()
+    safeInvoke(RFChargeFishingRod, 2)
+    
+
+    for i = 1, 1 do
+        safeInvoke(RFRequestFishingMinigameStarted, -1.25, 1)
+        task.wait() 
+    end
+end
+
+local function doRequestOnly()
+    for i = 1, 2 do
+        safeInvoke(RFRequestFishingMinigameStarted, -1.25, 1)
+        task.wait() 
+    end
+end
+
+local function forceResetFishing()
+    
+    for i = 1, 2 do
+        safeInvoke(RFCancelFishingInputs)
+    end
+    
+    resetTool()
+    task.wait(0.5) 
+    doChargeAndRequest()  
+    lastFishTime = tick() 
+end
+
+local function fishCheckLoop()
+    local retryCount = 0
+    local maxRetries = 10
+    
+    while running and fishCheckEnabled do
+        local currentTime = tick()
+        if currentTime - lastFishTime >= 8 and lastFishTime > 0 then
+            retryCount = retryCount + 1
+            forceResetFishing()
+            
+            if retryCount >= maxRetries then
+                retryCount = 0
+            end
+        else
+            retryCount = 0
+        end
+        task.wait(1)
+    end
+end
+
+local function spamCompletedLoop()
+    while running do
+        safeFire(REFishingCompleted)
+        task.wait()
+    end
+end
+
+local function equipToolLoop()
+    while running do
+        safeFire(REEquipToolFromHotbar, 1)
+        task.wait(2)
+    end
+end
+
+local function periodicResetLoop()
+    while running do
+        task.wait(300)
+        if running then
+            resetTool()
+            lastResetTime = tick()
+        end
+    end
+end
+
+local function setupFishCaughtHandler()
+    REFishCaught.OnClientEvent:Connect(function(fishName, fishData)
+        lastFishTime = tick()
+        
+        if running then
+            task.wait(0.09)
+            doChargeAndRequest() 
+        end
+    end)
+end
+
+local function fishingCycle()
+    lastResetTime = tick()
+    lastFishTime = tick()
+    fishCheckEnabled = true
+    
+    setupFishCaughtHandler()
+    
+    task.spawn(spamCompletedLoop)
+    task.spawn(equipToolLoop)
+    task.spawn(fishCheckLoop)
+    task.spawn(periodicResetLoop)
+    
+    task.wait(0.5)  
+    doChargeAndRequest()  
+    initialSetupDone = true
+    
+    
+    while running do
+        task.wait()
+    end
+    
+    fishCheckEnabled = false
+    initialSetupDone = false
+end
+
+local autoFishingToggle = Auto:Toggle({
+    Title = "Auto Fishing", 
+    Type = "Toggle",
+    Desc = "INSTANT FISHING - WITH ANTI STUCK SYSTEM",
+    Default = false,
+    Callback = function(state) 
+        running = state
+        autoFishingRunning = state 
+        if running then
+            task.spawn(fishingCycle)
+        else
+            safeInvoke(RFCancelFishingInputs)
+            equipped = false
+            fishCheckEnabled = false
+            initialSetupDone = false
+        end
+    end
+})
+
+Auto:Space()
+Auto:Divider()
+local AFS_Running = false
+local AFS_Toggle
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+
+local player = Players.LocalPlayer
+
+local AFS_REEquipToolFromHotbar = ReplicatedStorage.Packages._Index["sleitnick_net@0.2.0"].net["RE/EquipToolFromHotbar"]
+local AFS_RFChargeFishingRod = ReplicatedStorage.Packages._Index["sleitnick_net@0.2.0"].net["RF/ChargeFishingRod"]
+local AFS_RFRequestFishingMinigameStarted = ReplicatedStorage.Packages._Index["sleitnick_net@0.2.0"].net["RF/RequestFishingMinigameStarted"]
+local AFS_REFishingCompleted = ReplicatedStorage.Packages._Index["sleitnick_net@0.2.0"].net["RE/FishingCompleted"]
+local AFS_REUnequipToolFromHotbar = ReplicatedStorage.Packages._Index["sleitnick_net@0.2.0"].net["RE/UnequipToolFromHotbar"]
+local AFS_RFCancelFishingInputs = ReplicatedStorage.Packages._Index["sleitnick_net@0.2.0"].net["RF/CancelFishingInputs"]
+local AFS_REFishCaught = ReplicatedStorage.Packages._Index["sleitnick_net@0.2.0"].net["RE/FishCaught"]
+local AFS_REFishingStopped = ReplicatedStorage.Packages._Index["sleitnick_net@0.2.0"].net["RE/FishingStopped"]
+
+-- Variabel untuk delay yang bisa disesuaikan
+local AFS_ChargeRequestDelay = 2.4
+
+local AFS_LastFishTime = 0
+local AFS_Running = false
+local AFS_Equipped = false
+local AFS_LastResetTime = 0
+local AFS_FishCheckEnabled = false
+local AFS_InitialSetupDone = false 
+
+local function AFS_SafeFire(remote, arg)
+	if not remote then
+		return false
+	end
+	local ok, err = pcall(function()
+		if arg ~= nil then
+			remote:FireServer(arg)
+		else
+			remote:FireServer()
+		end
+	end)
+	if not ok then
+		return false
+	end
+	return true
+end
+
+local function AFS_SafeInvoke(remote, arg1, arg2)
+	if not remote then
+		return nil
+	end
+	local ok, res = pcall(function()
+		if arg1 ~= nil and arg2 ~= nil then
+			return remote:InvokeServer(arg1, arg2)
+		elseif arg1 ~= nil then
+			return remote:InvokeServer(arg1)
+		else
+			return remote:InvokeServer()
+		end
+	end)
+	if not ok then
+		return nil
+	end
+	return res
+end
+
+local function AFS_ShowNotification(title, content)
+    if WindUI and WindUI.Notify then
+        WindUI:Notify({
+            Title = title,
+            Content = content,
+            Duration = 3,
+        })
+    elseif Auto and Auto.Notify then
+        Auto:Notify({
+            Title = title,
+            Content = content,
+            Duration = 3,
+        })
+    end
+end
+
+local function AFS_EquipToolOnce()
+    if not AFS_Equipped then
+        for i = 1, 3 do
+            AFS_SafeFire(AFS_REEquipToolFromHotbar, 1)
+        end
+        AFS_Equipped = true
+    end
+end
+
+local function AFS_ResetTool()
+    AFS_SafeFire(AFS_REUnequipToolFromHotbar)
+    AFS_Equipped = false
+    AFS_EquipToolOnce()
+end
+
+local function AFS_DoChargeAndRequest()
+    -- ITERASI 1: Lengkap dengan stop & cancel
+    AFS_SafeInvoke(AFS_RFChargeFishingRod, 2)
+    AFS_SafeInvoke(AFS_RFRequestFishingMinigameStarted, -1.25, 1)
+    task.wait(AFS_ChargeRequestDelay)
+    AFS_SafeInvoke(AFS_REFishingStopped.OnClientEvent)
+    AFS_SafeInvoke(AFS_RFCancelFishingInputs)
+    task.wait(0.05)
+    
+    -- ITERASI 2: Hanya charge & request saja
+    AFS_SafeInvoke(AFS_RFChargeFishingRod, 2)
+    AFS_SafeInvoke(AFS_RFRequestFishingMinigameStarted, -1.25, 1)
+    task.wait(AFS_ChargeRequestDelay)
+end
+
+local function AFS_DoRequestFirst()
+    AFS_SafeInvoke(AFS_RFChargeFishingRod, 2)
+    AFS_SafeInvoke(AFS_RFRequestFishingMinigameStarted, -1.25, 1)
+    task.wait(0.05)
+end
+
+local function AFS_ForceResetFishing()
+    
+    for i = 1, 2 do
+        AFS_SafeInvoke(AFS_RFCancelFishingInputs)
+    end
+    
+    AFS_ResetTool()
+    task.wait(0.8) 
+    AFS_DoChargeAndRequest()  
+    AFS_LastFishTime = tick() 
+end
+
+local function AFS_FishCheckLoop()
+    local retryCount = 0
+    local maxRetries = 10
+    
+    while AFS_Running and AFS_FishCheckEnabled do
+        local currentTime = tick()
+        if currentTime - AFS_LastFishTime >= 2.5 and AFS_LastFishTime > 0 then
+            retryCount = retryCount + 1
+            AFS_ForceResetFishing()
+            
+            if retryCount >= maxRetries then
+                retryCount = 0
+            end
+        else
+            retryCount = 0
+        end
+        task.wait(1)
+    end
+end
+
+local function AFS_SpamCompletedLoop()
+    while AFS_Running do
+        AFS_SafeFire(AFS_REFishingCompleted)
+        task.wait()
+    end
+end
+
+local function AFS_EquipToolLoop()
+    while AFS_Running do
+        AFS_SafeFire(AFS_REEquipToolFromHotbar, 1)
+        task.wait(2)
+    end
+end
+
+local function AFS_PeriodicResetLoop()
+    while AFS_Running do
+        task.wait(60)
+        if AFS_Running then
+            AFS_SafeInvoke(AFS_RFCancelFishingInputs)
+            AFS_ResetTool()
+            AFS_LastResetTime = tick()
+        end
+    end
+end
+
+local function AFS_SetupFishCaughtHandler()
+    AFS_REFishCaught.OnClientEvent:Connect(function(fishName, fishData)
+        AFS_LastFishTime = tick()
+        
+        if AFS_Running then
+            task.wait(0.08)
+            AFS_DoRequestFirst() 
+        end
+    end)
+end
+
+local function AFS_FishingCycle()
+    AFS_LastResetTime = tick()
+    AFS_LastFishTime = tick()
+    AFS_FishCheckEnabled = true
+    
+    AFS_SetupFishCaughtHandler()
+    
+    task.spawn(AFS_SpamCompletedLoop)
+    task.spawn(AFS_EquipToolLoop)
+    task.spawn(AFS_FishCheckLoop)
+    task.spawn(AFS_PeriodicResetLoop)
+    
+    task.wait(0.5)  
+    AFS_DoChargeAndRequest()  
+    AFS_InitialSetupDone = true
+    
+    
+    while AFS_Running do
+        task.wait()
+    end
+    
+    AFS_FishCheckEnabled = false
+    AFS_InitialSetupDone = false
+end
+
+-- Toggle Auto Fishing
+local AFS_Toggle = Auto:Toggle({
+    Title = "Auto Fishing", 
+    Type = "Toggle",
+    Desc = "FAST INSTANT FISHING",
+    Default = false,
+    Callback = function(state) 
+        AFS_Running = state
+        if AFS_Running then
+            task.spawn(AFS_FishingCycle)
+        else
+            AFS_SafeInvoke(AFS_RFCancelFishingInputs)
+            AFS_Equipped = false
+            AFS_FishCheckEnabled = false
+            AFS_InitialSetupDone = false
+        end
+    end
+})
+
+-- Slider untuk menyesuaikan delay
+local AFS_DelaySlider = Auto:Slider({
+    Title = "Fishing Delay",
+    
+    Step = 0.1, 
+    
+    Value = {
+        Min = 0.1, 
+        Max = 10, 
+        Default = 2, 
+    },
+    Callback = function(value)
+        AFS_ChargeRequestDelay = value
+    end
+})
+
+
+
+Auto:Space()
+Auto:Divider()
+
+local AFS_Running = false
+local AFS_Toggle
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+
+local player = Players.LocalPlayer
+
+local AFS_REEquipToolFromHotbar = ReplicatedStorage.Packages._Index["sleitnick_net@0.2.0"].net["RE/EquipToolFromHotbar"]
+local AFS_RFChargeFishingRod = ReplicatedStorage.Packages._Index["sleitnick_net@0.2.0"].net["RF/ChargeFishingRod"]
+local AFS_RFRequestFishingMinigameStarted = ReplicatedStorage.Packages._Index["sleitnick_net@0.2.0"].net["RF/RequestFishingMinigameStarted"]
+local AFS_REFishingCompleted = ReplicatedStorage.Packages._Index["sleitnick_net@0.2.0"].net["RE/FishingCompleted"]
+local AFS_REUnequipToolFromHotbar = ReplicatedStorage.Packages._Index["sleitnick_net@0.2.0"].net["RE/UnequipToolFromHotbar"]
+local AFS_RFCancelFishingInputs = ReplicatedStorage.Packages._Index["sleitnick_net@0.2.0"].net["RF/CancelFishingInputs"]
+local AFS_REFishCaught = ReplicatedStorage.Packages._Index["sleitnick_net@0.2.0"].net["RE/FishCaught"]
+local AFS_REFishingStopped = ReplicatedStorage.Packages._Index["sleitnick_net@0.2.0"].net["RE/FishingStopped"]
+
+-- Variabel untuk delay yang bisa disesuaikan
+local AFS_ChargeRequestDelay = 2.4
+
+local AFS_LastFishTime = 0
+local AFS_Running = false
+local AFS_Equipped = false
+local AFS_LastResetTime = 0
+local AFS_FishCheckEnabled = false
+local AFS_InitialSetupDone = false 
+
+local function AFS_SafeFire(remote, arg)
+	if not remote then
+		return false
+	end
+	local ok, err = pcall(function()
+		if arg ~= nil then
+			remote:FireServer(arg)
+		else
+			remote:FireServer()
+		end
+	end)
+	if not ok then
+		return false
+	end
+	return true
+end
+
+local function AFS_SafeInvoke(remote, arg1, arg2)
+	if not remote then
+		return nil
+	end
+	local ok, res = pcall(function()
+		if arg1 ~= nil and arg2 ~= nil then
+			return remote:InvokeServer(arg1, arg2)
+		elseif arg1 ~= nil then
+			return remote:InvokeServer(arg1)
+		else
+			return remote:InvokeServer()
+		end
+	end)
+	if not ok then
+		return nil
+	end
+	return res
+end
+
+local function AFS_ShowNotification(title, content)
+    if WindUI and WindUI.Notify then
+        WindUI:Notify({
+            Title = title,
+            Content = content,
+            Duration = 3,
+        })
+    elseif Auto and Auto.Notify then
+        Auto:Notify({
+            Title = title,
+            Content = content,
+            Duration = 3,
+        })
+    end
+end
+
+local function AFS_EquipToolOnce()
+    if not AFS_Equipped then
+        for i = 1, 3 do
+            AFS_SafeFire(AFS_REEquipToolFromHotbar, 1)
+        end
+        AFS_Equipped = true
+    end
+end
+
+local function AFS_ResetTool()
+    AFS_SafeFire(AFS_REUnequipToolFromHotbar)
+    AFS_Equipped = false
+    AFS_EquipToolOnce()
+end
+
+local function AFS_DoChargeAndRequest()
+    -- ITERASI 1: Lengkap dengan stop & cancel
+    AFS_SafeInvoke(AFS_RFChargeFishingRod, 2)
+    AFS_SafeInvoke(AFS_RFRequestFishingMinigameStarted, -1.25, 1)
+    task.wait(AFS_ChargeRequestDelay)
+    AFS_SafeInvoke(AFS_REFishingStopped.OnClientEvent)
+    AFS_SafeInvoke(AFS_RFCancelFishingInputs)
+    task.wait(0.05)
+    
+    -- ITERASI 2: Hanya charge & request saja
+    AFS_SafeInvoke(AFS_RFChargeFishingRod, 2)
+    AFS_SafeInvoke(AFS_RFRequestFishingMinigameStarted, -1.25, 1)
+    task.wait(AFS_ChargeRequestDelay)
+end
+
+local function AFS_DoRequestFirst()
+    AFS_SafeInvoke(AFS_RFChargeFishingRod, 2)
+    AFS_SafeInvoke(AFS_RFRequestFishingMinigameStarted, -1.25, 1)
+    task.wait(0.05)
+end
+
+local function AFS_ForceResetFishing()   
+    AFS_SafeInvoke(AFS_RFCancelFishingInputs)   
+    AFS_ResetTool()
+    task.wait(0.1) 
+    AFS_DoChargeAndRequest()  
+    AFS_LastFishTime = tick() 
+end
+
+local function AFS_FishCheckLoop()
+    local retryCount = 0
+    local maxRetries = 10
+    
+    while AFS_Running and AFS_FishCheckEnabled do
+        local currentTime = tick()
+        if currentTime - AFS_LastFishTime >= 4 and AFS_LastFishTime > 0 then
+            retryCount = retryCount + 1
+            AFS_ForceResetFishing()
+            
+            if retryCount >= maxRetries then
+                retryCount = 0
+            end
+        else
+            retryCount = 0
+        end
+        task.wait(1)
+    end
+end
+
+local function AFS_SpamCompletedLoop()
+    while AFS_Running do
+        AFS_SafeFire(AFS_REFishingCompleted)
+        task.wait()
+    end
+end
+
+local function AFS_EquipToolLoop()
+    while AFS_Running do
+        AFS_SafeFire(AFS_REEquipToolFromHotbar, 1)
+        task.wait(2)
+    end
+end
+
+
+
+-- FUNCTION YANG DIPERBAIKI:
+local function AFS_PeriodicRequestLoop()
+    while AFS_Running do
+        task.wait(2.6)
+        if AFS_Running then
+            AFS_SafeInvoke(AFS_RFCancelFishingInputs)
+            AFS_SafeInvoke(AFS_RFChargeFishingRod, 2)
+            AFS_SafeInvoke(AFS_RFRequestFishingMinigameStarted, -1.25, 1)
+        end
+    end
+end
+
+local function AFS_SetupFishCaughtHandler()
+    AFS_REFishCaught.OnClientEvent:Connect(function(fishName, fishData)
+        AFS_LastFishTime = tick()
+        
+        if AFS_Running then
+            task.wait(0.07)
+            AFS_DoRequestFirst() 
+        end
+    end)
+end
+
+local function AFS_FishingCycle()
+    AFS_LastResetTime = tick()
+    AFS_LastFishTime = tick()
+    AFS_FishCheckEnabled = true
+    
+    AFS_SetupFishCaughtHandler()
+    task.spawn(AFS_PeriodicRequestLoop) -- MENGGUNAKAN FUNCTION YANG BARU
+    task.spawn(AFS_SpamCompletedLoop)
+    task.spawn(AFS_EquipToolLoop)
+    task.spawn(AFS_FishCheckLoop)
+    task.spawn(AFS_PeriodicResetLoop)
+    
+    task.wait(0.5)  
+    AFS_DoChargeAndRequest()  
+    AFS_InitialSetupDone = true
+    
+    while AFS_Running do
+        task.wait()
+    end
+    
+    AFS_FishCheckEnabled = false
+    AFS_InitialSetupDone = false
+end
+
+-- Toggle Auto Fishing
+local AFS_Toggle = Auto:Toggle({
+    Title = "SUPER Fishing", 
+    Type = "Toggle",
+    Desc = "SUPER INSTANT FISHING",
+    Default = false,
+    Callback = function(state) 
+        AFS_Running = state
+        if AFS_Running then
+            task.spawn(AFS_FishingCycle)
+        else
+            AFS_SafeInvoke(AFS_RFCancelFishingInputs)
+            AFS_Equipped = false
+            AFS_FishCheckEnabled = false
+            AFS_InitialSetupDone = false
+        end
+    end
+})
+
+-- Slider untuk menyesuaikan delay
+local AFS_DelaySlider = Auto:Slider({
+    Title = "Blatant Delay",
+    
+    Step = 0.1, 
+    
+    Value = {
+        Min = 0.1, 
+        Max = 10, 
+        Default = 2, 
+    },
+    Callback = function(value)
+        AFS_ChargeRequestDelay = value
+    end
+})
