@@ -918,34 +918,6 @@ local function AFS_DoRequestFirst()
     task.wait(0.05)
 end
 
-local function AFS_ForceResetFishing()   
-    AFS_SafeInvoke(AFS_RFCancelFishingInputs)   
-    AFS_ResetTool()
-    task.wait(0.1) 
-    AFS_DoChargeAndRequest()  
-    AFS_LastFishTime = tick() 
-end
-
-local function AFS_FishCheckLoop()
-    local retryCount = 0
-    local maxRetries = 10
-    
-    while AFS_Running and AFS_FishCheckEnabled do
-        local currentTime = tick()
-        if currentTime - AFS_LastFishTime >= 4 and AFS_LastFishTime > 0 then
-            retryCount = retryCount + 1
-            AFS_ForceResetFishing()
-            
-            if retryCount >= maxRetries then
-                retryCount = 0
-            end
-        else
-            retryCount = 0
-        end
-        task.wait(1)
-    end
-end
-
 local function AFS_SpamCompletedLoop()
     while AFS_Running do
         AFS_SafeFire(AFS_REFishingCompleted)
@@ -965,7 +937,7 @@ end
 -- FUNCTION YANG DIPERBAIKI:
 local function AFS_PeriodicRequestLoop()
     while AFS_Running do
-        task.wait(2.6)
+        task.wait(2.5)
         if AFS_Running then
             AFS_SafeInvoke(AFS_RFCancelFishingInputs)
             AFS_SafeInvoke(AFS_RFChargeFishingRod, 2)
@@ -997,7 +969,7 @@ local function AFS_FishingCycle()
     task.spawn(AFS_FishCheckLoop)
     task.spawn(AFS_PeriodicResetLoop)
     
-    task.wait(0.5)  
+    task.wait(0.1)  
     AFS_DoChargeAndRequest()  
     AFS_InitialSetupDone = true
     
